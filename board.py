@@ -20,53 +20,77 @@ class Board:
     def slide_line(line):
         values = [x for x in line if x]
         result = []
+        merged = False
         i = 0
 
         while i < len(values):
             if i + 1 < len(values) and values[i] == values[i + 1]:
                 result.append(values[i] * 2)
+                merged = True
                 i += 2
             else:
                 result.append(values[i])
                 i += 1
 
-        return result + [0] * (SIZE - len(result))
+        return result + [0] * (SIZE - len(result)), merged
 
     def move_left(self):
         changed = False
+        merged = False
+
         for r in range(SIZE):
             old = self.grid[r][:]
-            self.grid[r] = self.slide_line(old)
+            self.grid[r], line_merged = self.slide_line(old)
             changed |= old != self.grid[r]
-        return changed
+            merged |= line_merged
+
+        return changed, merged
 
     def move_right(self):
         changed = False
+        merged = False
+
         for r in range(SIZE):
             old = self.grid[r][:]
-            self.grid[r] = list(reversed(self.slide_line(list(reversed(old)))))
+            new, line_merged = self.slide_line(list(reversed(old)))
+            self.grid[r] = list(reversed(new))
             changed |= old != self.grid[r]
-        return changed
+            merged |= line_merged
+
+        return changed, merged
 
     def move_up(self):
         changed = False
+        merged = False
+
         for c in range(SIZE):
             old = [self.grid[r][c] for r in range(SIZE)]
-            new = self.slide_line(old)
+            new, column_merged = self.slide_line(old)
+
             for r in range(SIZE):
                 self.grid[r][c] = new[r]
+
             changed |= old != new
-        return changed
+            merged |= column_merged
+
+        return changed, merged
 
     def move_down(self):
         changed = False
+        merged = False
+
         for c in range(SIZE):
             old = [self.grid[r][c] for r in range(SIZE)]
-            new = list(reversed(self.slide_line(list(reversed(old)))))
+            new, column_merged = self.slide_line(list(reversed(old)))
+            new = list(reversed(new))
+
             for r in range(SIZE):
                 self.grid[r][c] = new[r]
+
             changed |= old != new
-        return changed
+            merged |= column_merged
+
+        return changed, merged
 
     def has_won(self):
         return any(2048 in row for row in self.grid)

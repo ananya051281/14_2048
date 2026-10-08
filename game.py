@@ -18,14 +18,18 @@ class Game:
         moves = {"a": self.board.move_left, "d": self.board.move_right,
                  "w": self.board.move_up, "s": self.board.move_down}
         if key not in moves:
-            return False
+            return False, False
+
         old_grid = [row[:] for row in self.board.grid]
         old_score = self.board.score
-        changed = moves[key]()
+
+        changed, merged = moves[key]()
+
         if changed:
             self.history = [(old_grid, old_score)]
             self.board.add_random_tile()
-        return changed
+
+        return changed, merged
 
     def undo(self):
         if not self.history:
@@ -57,6 +61,15 @@ class Game:
             if key not in "wasd":
                 print("Use W/A/S/D.")
                 continue
-            if self.move(key):
+            changed, merged = self.move(key)
+
+            if changed:
                 self.best_score = max(self.best_score, self.board.score)
+
+                if merged:
+                    print("Move successful — tiles merged.")
+                else:
+                    print("Move successful.")
+            else:
+                print("Move did not change the board.")
 	    
